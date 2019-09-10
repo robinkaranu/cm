@@ -2,9 +2,9 @@
 # Event config
 event:
   timezone: Europe/Berlin
-  acronym: XXX
-  name: XXX
-  slogan: XXX
+  acronym: datengarten
+  name: Datengarten
+  slogan: ""
   formats:
     hd: 'yes'
     sd: 'yes'
