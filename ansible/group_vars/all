@@ -11,6 +11,7 @@ event:
 
 voctomix:
   version: "master"
+  version2: "voctomix2"
 
   # also record Full-HD Slides into the .ts-Files
   parallel_slide_recording: true
@@ -24,6 +25,8 @@ voctomix:
   # lossless audio
   lossless_audio: true
 
+  lossless_audio: true
+
 # only enable for congress
 #youtube: true
 
@@ -31,7 +34,7 @@ user_voc_password: "{{ lookup('keepass', 'ansible/logins/voc.password') }}"
 
 system:
   type: pc
-  kernel_package: linux-image-4.13.12-041312-generic
+  kernel_package: linux-image-4.19.0-6-amd64
 #  kernel_urls:
 #    - http://pkg.c3voc.de/pool/main/l/linux/linux-image-4.13.12-041312-generic_4.13.12-041312.201711080535_amd64.deb
 #    - http://pkg.c3voc.de/pool/main/l/linux/linux-headers-4.13.12-041312_4.13.12-041312.201711080535_all.deb
