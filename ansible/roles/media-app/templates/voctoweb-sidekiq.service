@@ -1,0 +1,16 @@
+[Unit]
+Description=Sidekiq job runner for media.ccc.de
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/media/media-site/current
+User=media
+ExecStart=/srv/media/.rvm/bin/rvm {{ ruby_version }}@media-site do bundle exec sidekiq --index 0 --environment production
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=voctoweb-sidekiq
+
+[Install]
+WantedBy=default.target

@@ -1,47 +1,68 @@
 ---
-  - hosts: cdn
+  - hosts: media-assets
     roles:
-      - { role: 'media-common', tags: ['media-common'] }
+      - role: media-assets
+        gather_facts: no
+        tags: ['media-assets']
 
-      - role: 'ansible-acmetool'
-        when: inventory_hostname == 'berlin-ak.media.ccc.de' and acmetool_setup == 1
-        vars: { acmetool_want: ["{{ inventory_hostname }} {{ inventory_hostname_short }}.ftp.media.ccc.de"] }
-        tags: ['ansible-acmetool', 'nginx']
+  - hosts: media-cdn
+    roles:
+      - role: media-common
+        tags: ['media-common']
 
-      - role: 'ansible-acmetool'
-        when: inventory_hostname == 'koeln.media.ccc.de' and acmetool_setup == 1
-        vars: { acmetool_want: ["{{ inventory_hostname }} cdn.media.ccc.de"] }
-        tags: ['ansible-acmetool', 'nginx']
+      - role: acmetool
+        when: ssl == 1 and acmetool_setup == 1
+        tags: ['acmetool-install', 'nginx']
 
-      - role: 'media-cdn'
-        when: cdn == 1
+      - role: golang
+        tags: ['golang']
+
+      - role: media-cdn
         tags: ['media-cdn']
 
-      - role: 'media-mirror'
-        when: mirror == 1
+      - role: logcheck
+        tags: ['logcheck']
+
+  - hosts: media-mirror
+    roles:
+      - role: media-common
+        tags: ['media-common']
+
+      - role: acmetool
+        when: ssl == 1 and acmetool_setup == 1
+        tags: ['acmetool-install', 'nginx']
+
+      - role: media-mirror
         tags: ['media-mirror']
 
-      - { role: 'logcheck', tags: ['logcheck'] }
+      - role: logcheck
+        tags: ['logcheck']
 
-    vars:
-      # run acmetool setup
-      acmetool_setup: 0
-      # remove all configuration/state first
-      acmetool_cleanup: 'false'
-      # will overwrite local files
-      download_logcheck: 'false'
-      # will remove local logcheck rules before upload
-      remove_logcheck: 'false'
+  - hosts: media-app
+    roles:
+      - role: media-common
+        tags: ['media-common']
 
-      acmetool_websrv: "nginx"
-      redis_bind: 127.0.0.1
-      users:
-        - { name: 'derpeter', state: 'absent' }
-        - { name: 'danimo', state: 'absent' }
-        - { name: 'florolf', state: 'absent' }
-        - { name: 'mazdermind', state: 'absent' }
-        - { name: 'meise', state: 'absent' }
-        - { name: 'voc', state: 'present' }
+      - role: acmetool
+        when: ssl == 1 and acmetool_setup == 1
+        tags: ['acmetool-install', 'nginx']
 
-      media_mirror_rsync: 'TODO keepass plz'
-      google_maps_api_key: 'TODO keepass plz'
+      - role: media-app
+        tags: ['media-app']
+
+      - role: rvm1-ansible
+        tags: ['media-app', 'ruby']
+        rvm1_rubies: ['ruby-{{ ruby_version }}']
+        rvm1_user: 'media'
+        rvm1_install_path: '/srv/media/.rvm'
+        rvm1_install_flags: '--auto-dotfiles --user-install'
+        rvm1_rvm_version: 'stable'
+        rvm1_autolib_mode: 0
+
+  - hosts: media-app-db
+    roles:
+      - role: media-common
+        tags: ['media-common']
+
+      - role: media-app-db
+        tags: ['media-app-db']

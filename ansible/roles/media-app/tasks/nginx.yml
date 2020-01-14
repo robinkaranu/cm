@@ -1,0 +1,51 @@
+---
+- file: path=/etc/nginx/sites-enabled/default state=absent
+- file: path=/etc/nginx/sites-enabled/00-acmetool.conf state=absent
+
+- copy: src=nginx/{{ item }}
+        dest=/etc/nginx/{{ item }}
+        owner=root group=root mode=0640
+  loop:
+    - nginx.conf
+
+- copy: content={{ httpstats }}
+        dest=/etc/nginx/htpasswd
+        owner=root group=root mode=0640
+
+- copy: content={{ dhparam }}
+        dest=/etc/nginx/dhparam.pem
+        owner=root group=root mode=0640
+
+# already in media-common
+# - copy: src=nginx/anon.conf
+#         dest=/etc/nginx/conf.d/anon.conf
+#         owner=root group=root mode=0640
+
+- template: src=nginx/media.ccc.de
+        dest=/etc/nginx/sites-available/media.ccc.de
+        owner=root group=root mode=0640
+
+- file: src=/etc/nginx/sites-available/{{ item }}
+        dest=/etc/nginx/sites-enabled/{{ item }}
+        state=link
+  with_items:
+    - media.ccc.de
+  notify:
+    - restart nginx
+
+
+- file: path={{ nginx_cache_dir }} state=directory
+
+# tmpfs /srv/media/media-site/cache tmpfs defaults,size=512M 0 0
+- mount:
+    fstype: tmpfs
+    path: "{{ nginx_cache_dir }}"
+    opts: "defaults,size=2048M"
+    src: tmpfs
+    state: mounted
+
+- systemd: state=started enabled=yes name=nginx
+
+- copy: src=goaccess.sh
+        dest=/usr/local/bin
+        owner=root group=root mode=0755

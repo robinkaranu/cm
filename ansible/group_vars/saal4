@@ -13,6 +13,8 @@ voctomix_stream_suppress_audio_tracks: []
 
 voctomix_inverted_axis: True
 
+voctomix_inverted_axis: True
+
 # für JVC:
 #    video_connection: SDI
 #    video_mode: "1080p25"
