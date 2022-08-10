@@ -21,7 +21,7 @@ show_proxy_messages=1
 # be used
 try_proxies=(
 #10.73.0.254:3142
-aptproxy.lan.c3voc.de:3142
+#aptproxy.lan.c3voc.de:3142
 )
 
 print_msg() {

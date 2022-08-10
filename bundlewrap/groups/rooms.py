@@ -1,5 +1,6 @@
 ROOMS_WITHOUT_MINIONS = (
     81,
+    99,
     191,
 )
 
@@ -50,3 +51,10 @@ groups['server'] = {
         },
     },
 }
+
+
+#groups['dev'] = {
+#    'members': {
+#        'encoder-dev-derchris',
+#    },
+#}
