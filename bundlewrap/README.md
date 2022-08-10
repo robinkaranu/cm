@@ -1,4 +1,8 @@
-# c3voc Bundlewrap Repository (DEMO ONLY, NO PRODUCTION USE!)
+# c3voc Bundlewrap Repository
+Host *
+    ControlPath ~/.ssh/cm-%r@%h:%p
+    ControlMaster auto
+    ControlPersist 10m
 
 Setting up this repository is easy:
 
@@ -17,6 +21,14 @@ export BW_KEEPASS_FILE=$HOME/whereever/the/voc/keepass/lives.kdbx
 export BW_KEEPASS_PASSWORD=reallysecure
 ```
 
+You want to set up ssh multiplexing for fast runs:
+```
+Host *
+    ControlPath ~/.ssh/cm-%r@%h:%p
+    ControlMaster auto
+    ControlPersist 10m
+```
+
 ## Event setup
 
 To set up a new event, do the following steps, add `yourevent.toml` to
@@ -28,13 +40,24 @@ subgroups = ["saal1", "saal2"]
 
 [metadata.event]
 timezone = "Europe/Berlin"
-acronym = "XYZ"
 name = "ZYXcon"
-slogan = ""
+slug = "XYZ"
 ```
 
 Please add the rooms used in your event to the `subgroups` list of the
 file.
+
+Available room setups:
+* saal1
+* saal2
+* saal3
+* saal4
+* saal5
+* saal6
+* saal80
+* saal81
+* saal191
+* servercase
 
 To set a room name, simply specify the following in `nodes/yourencoder.toml`:
 
