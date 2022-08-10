@@ -19,6 +19,7 @@ mode = "1080p24"
 hdmi = true
 
 [metadata.voctocore.sources.test]
+kind = "testsource"
 pattern = "smpte"
 
 [metadata.voctocore.audio.original]
