@@ -1,4 +1,8 @@
-groups = ["debian-bullseye", "mixers"]
+groups = ["debian-bullseye", "mixers", "encoders"]
+hostname = "192.168.178.103"
+
+[metadata]
+hostname = "encoder-dev"
 
 [metadata.crs-worker]
 token.encoding = "!kee_user:ansible|worker-groups|encoder1"
@@ -11,8 +15,11 @@ dhcp = true
 
 [metadata.voctocore.sources.slides]
 devicenumber = 0
-mode = "720p60"
+mode = "1080p24"
 hdmi = true
+
+[metadata.voctocore.sources.test]
+pattern = "smpte"
 
 [metadata.voctocore.audio.original]
 streams = "0+1"
