@@ -1,0 +1,38 @@
+groups = ["debian-bullseye", "mixers", "encoders"]
+hostname = "192.168.178.103"
+
+[metadata.voctogui]
+encoder-ip = "192.168.178.103"
+
+[metadata]
+hostname = "encoder-dev"
+
+[metadata.crs-worker]
+token.encoding = "!kee_user:ansible|worker-groups|encoder1"
+token.meta = "!kee_user:ansible|worker-groups|encoder1-meta"
+secret.encoding = "!kee_pass:ansible|worker-groups|encoder1"
+secret.meta = "!kee_pass:ansible|worker-groups|encoder1-meta"
+
+[metadata.interfaces.eth0]
+dhcp = true
+
+[metadata.voctocore.sources.slides]
+devicenumber = 0
+mode = "1080p24"
+hdmi = true
+
+[metadata.voctocore.sources.test]
+kind = "testsource"
+pattern = "smpte"
+
+[metadata.voctocore.audio.original]
+streams = "0+1"
+input = "slides"
+
+[metadata.event]
+room_name = "dev"
+acronym = "dev"
+slug = "dev"
+
+[metadata.voctocore]
+streaming_endpoint = "encoder-dev"

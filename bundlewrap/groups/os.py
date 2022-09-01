@@ -23,8 +23,8 @@ groups['linux'] = {
     'metadata': {
         'firewall': {
             'port_rules': {
-                '*': {'voc-internal'},
-                '*/udp': {'voc-internal'},
+                '*': {'voc-internal', '192.168.178.0/24'},
+                '*/udp': {'voc-internal', '192.168.178.0/24'},
             },
         },
         'telegraf': {
