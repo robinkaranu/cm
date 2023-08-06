@@ -45,52 +45,69 @@ ffmpeg -y -nostdin -hide_banner -re \
     -filter_hw_device streaming \
 % endif
     -filter_complex "
-[0:v] hqdn3d\
+    [0:v] hqdn3d\
 % if vaapi_enabled:
     , format=nv12,hwupload \
 % endif
-    [hd];\
+    [hd];
 % if parallel_slide_streaming:
     [1:v] fps=5, hqdn3d\
-% if vaapi_enabled:
+%  if vaapi_enabled:
     , format=nv12,hwupload,scale_vaapi=w=1024:h=576\
-% else:
+%  else:
     , scale=1024:576\
+%  endif
+    [slides];
 % endif
-    [slides];\
-% endif
-    \
-    [0:a]pan=stereo|c0=c0|c1=c1[s_pgm];\
-    [0:a]pan=stereo|c0=c2|c1=c2[s_trans_1];\
-    [0:a]pan=stereo|c0=c3|c1=c3[s_trans_2];\
-    \
-    [s_pgm] asplit=2 [pgm_1] [pgm_2] ;\
+
+    [0:a]pan=stereo|c0=c0|c1=c1[s_pgm];
+    [0:a]pan=stereo|c0=c2|c1=c2[s_trans_1];
+    [0:a]pan=stereo|c0=c3|c1=c3[s_trans_2];
+
+    [s_pgm] asplit=2 [pgm_1] [pgm_2];
 % if dynaudnorm:
     [pgm_2] dynaudnorm=$para_pa_leveler [pgm_lev] ;\
 % endif
-    \
-    [s_trans_1] compand=$para_trans_gate [trans_gate_1] ;\
-    [trans_gate_1] compand=$para_trans_limiter [trans_lim_1] ;\
-    [trans_lim_1] dynaudnorm=$para_trans_leveler [trans_lev_1] ;\
-    \
-    [s_trans_2 ] compand=$para_trans_gate [trans_gate_2] ;\
-    [trans_gate_2] compand=$para_trans_limiter [trans_lim_2] ;\
-    [trans_lim_2] dynaudnorm=$para_trans_leveler [trans_lev_2] ;\
-    \
+
+    [s_trans_1] compand=$para_trans_gate [trans_gate_1];
+    [trans_gate_1] compand=$para_trans_limiter [trans_lim_1];
+    [trans_lim_1] dynaudnorm=$para_trans_leveler [trans_lev_1];
+
+    [s_trans_2 ] compand=$para_trans_gate [trans_gate_2];
+    [trans_gate_2] compand=$para_trans_limiter [trans_lim_2];
+    [trans_lim_2] dynaudnorm=$para_trans_leveler [trans_lev_2];
+
 % if dynaudnorm:
-    [pgm_lev] volume=$para_mix_vol_pa,asplit [mix_int_1][mix_int_2] ;\
+    [pgm_lev] volume=$para_mix_vol_pa,asplit [mix_int_1][mix_int_2];
 % else:
-    [pgm_2] volume=$para_mix_vol_pa,asplit [mix_int_1][mix_int_2] ;\
+    [pgm_2] volume=$para_mix_vol_pa,asplit [mix_int_1][mix_int_2];
 % endif
-    [trans_lev_1] volume=$para_mix_vol_trans [mix_trans_1] ;\
-    [trans_lev_2] volume=$para_mix_vol_trans [mix_trans_2] ;\
-    [mix_int_1][mix_trans_1] amix=inputs=2:duration=longest [mix_out_1] ;\
-    [mix_int_2][mix_trans_2] amix=inputs=2:duration=longest [mix_out_2] \
+    [trans_lev_1] volume=$para_mix_vol_trans [mix_trans_1];
+    [trans_lev_2] volume=$para_mix_vol_trans [mix_trans_2];
+    [mix_int_1][mix_trans_1] amix=inputs=2:duration=longest [mix_out_1];
+    [mix_int_2][mix_trans_2] amix=inputs=2:duration=longest [mix_out_2]\
 % if dynaudnorm:
-    ;\
-    [pgm_1] dynaudnorm=$para_mix_leveler,loudnorm=$para_mix_loudnorm [pgm]; \
-    [mix_out_1] dynaudnorm=$para_mix_leveler,loudnorm=$para_mix_loudnorm [duck_out_1]; \
-    [mix_out_2] dynaudnorm=$para_mix_leveler,loudnorm=$para_mix_loudnorm [duck_out_2] \
+    ;
+    [pgm_1] dynaudnorm=$para_mix_leveler,loudnorm=$para_mix_loudnorm [pgm];
+    [mix_out_1] dynaudnorm=$para_mix_leveler,loudnorm=$para_mix_loudnorm [duck_out_1];
+    [mix_out_2] dynaudnorm=$para_mix_leveler,loudnorm=$para_mix_loudnorm [duck_out_2]
+% endif
+% if loudness_rendering:
+
+    ; nullsrc=size=640x840 [loudness_base];
+    [0:v] scale=640:360,fps=30 [loudness_streamvid];
+%  if dynaudnorm:
+    [pgm] ebur128=video=1:meter=16:target=-16:size=640x480 [loudness_ebur][loudness_audio];
+    [pgm] avectorscope=size=640x480:zoom=2:r=30 [loudness_avec];
+%  else:
+    [pgm_1] ebur128=video=1:meter=16:target=-16:size=640x480 [loudness_ebur][loudness_audio];
+    [pgm_1] avectorscope=size=640x480:zoom=2:r=30 [loudness_avec];
+%  endif
+    [loudness_ebur][loudness_vec] blend=all_mode='addition':all_opacity=0.8 [loudness_scope];
+    [loudness_audio] aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo [loudness_aout];
+    [loudness_base][loudness_scope] overlay=shortest=1 [loudness_vupper];
+    [loudness_vupper][loudness_streamvid] overlay=shortest=1:y=480 [loudness_vtmp];
+    [loudness_vtmp] drawtext='fontcolor=white:x=50:y=50:fontsize=60:fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf:text=${room_name}' [loudness_vout]
 % endif
     " \
 % if vaapi_enabled:
@@ -130,4 +147,10 @@ ffmpeg -y -nostdin -hide_banner -re \
     -password "$VOC_STREAMING_AUTH" \
     -content_type video/webm \
     "icecast://live.ber.c3voc.de:7999/${endpoint}"
+% endif
+% if loudness_rendering:
+    -map "[loudness_vout]" -c:v libx264 -threads 2 -preset veryfast -x264-params keyint=30 -tune zerolatency -crf:0 26 -profile:0 high -level:0 4.1 -strict -2 -pix_fmt yuv420p \
+    -map "[loudness_aout]" -c:a aac -b:a 128k \
+    -f flv \
+    "rtmp://ingest2.c3voc.de/relay/${endpoint}_loudness"
 % endif

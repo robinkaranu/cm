@@ -12,6 +12,7 @@ defaults = {
         },
     },
     'voctocore': {
+        'loudness_rendering': False,
         'mirror_view': False, # automatically mirrors SBS/LEC views
         'parallel_slide_recording': True,
         'parallel_slide_streaming': True,
