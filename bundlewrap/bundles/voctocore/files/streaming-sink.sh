@@ -64,7 +64,7 @@ ffmpeg -y -nostdin -hide_banner -re \
     [0:a]pan=stereo|c0=c2|c1=c2[s_trans_1];
     [0:a]pan=stereo|c0=c3|c1=c3[s_trans_2];
 
-    [s_pgm] asplit=2 [pgm_1] [pgm_2];
+    [s_pgm] asplit=4 [pgm_1] [pgm_2] [loudness_ebur_in] [loudness_avec_in];
 % if dynaudnorm:
     [pgm_2] dynaudnorm=$para_pa_leveler [pgm_lev] ;\
 % endif
@@ -96,14 +96,9 @@ ffmpeg -y -nostdin -hide_banner -re \
 
     ; nullsrc=size=640x840 [loudness_base];
     [0:v] scale=640:360,fps=30 [loudness_streamvid];
-%  if dynaudnorm:
-    [pgm] ebur128=video=1:meter=16:target=-16:size=640x480 [loudness_ebur][loudness_audio];
-    [pgm] avectorscope=size=640x480:zoom=2:r=30 [loudness_avec];
-%  else:
-    [pgm_1] ebur128=video=1:meter=16:target=-16:size=640x480 [loudness_ebur][loudness_audio];
-    [pgm_1] avectorscope=size=640x480:zoom=2:r=30 [loudness_avec];
-%  endif
-    [loudness_ebur][loudness_vec] blend=all_mode='addition':all_opacity=0.8 [loudness_scope];
+    [loudness_ebur_in] ebur128=video=1:meter=16:target=-16:size=640x480 [loudness_ebur][loudness_audio];
+    [loudness_avec_in] avectorscope=size=640x480:zoom=2:r=30 [loudness_avec];
+    [loudness_ebur][loudness_avec] blend=all_mode='addition':all_opacity=0.8 [loudness_scope];
     [loudness_audio] aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo [loudness_aout];
     [loudness_base][loudness_scope] overlay=shortest=1 [loudness_vupper];
     [loudness_vupper][loudness_streamvid] overlay=shortest=1:y=480 [loudness_vtmp];
@@ -141,12 +136,12 @@ ffmpeg -y -nostdin -hide_banner -re \
     \
 % if srt_publish:
     -f mpegts \
-    "srt://ingest.c3voc.de:1337?streamid=publish/${endpoint}/$VOC_STREAMING_AUTH"
+    "srt://ingest.c3voc.de:1337?streamid=publish/${endpoint}/$VOC_STREAMING_AUTH"\
 % else:
     -f matroska \
     -password "$VOC_STREAMING_AUTH" \
     -content_type video/webm \
-    "icecast://live.ber.c3voc.de:7999/${endpoint}"
+    "icecast://live.ber.c3voc.de:7999/${endpoint}"\
 % endif
 % if loudness_rendering:
     -map "[loudness_vout]" -c:v libx264 -threads 2 -preset veryfast -x264-params keyint=30 -tune zerolatency -crf:0 26 -profile:0 high -level:0 4.1 -strict -2 -pix_fmt yuv420p \
